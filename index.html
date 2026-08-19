@@ -478,6 +478,197 @@
       </div>
     </section>
 
+    <!-- Trải phẳng bốn trạng thái đồng bộ theo ngày để API trả về một document cho mỗi invoiceDate. -->
+    <section>
+      <h2>🗄️ 6. Thiết Kế Bảng MongoDB — Số Lượng Đầu Phiếu Hóa Đơn Đồng Bộ</h2>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Collection đề xuất: <code>dashboardinvoicesyncstats</code></span>
+          <span class="ui-badge">Đề xuất — cần BE xác nhận</span>
+        </div>
+        <p class="desc">Lưu số lượng đầu phiếu hóa đơn theo ngày dưới dạng document phẳng. Mỗi document gồm bốn trạng thái đồng bộ và tổng số đầu phiếu của cùng một <code>invoiceDate</code>.</p>
+
+        <h4>Thiết kế document phẳng:</h4>
+        <table>
+          <thead><tr><th>Field</th><th>Kiểu MongoDB</th><th>Bắt buộc</th><th>Quy tắc / mục đích</th></tr></thead>
+          <tbody>
+            <tr><td><code>_id</code></td><td><code>ObjectId</code></td><td>Có</td><td>Định danh document thống kê.</td></tr>
+            <tr><td><code>invoiceDate</code></td><td><code>Date</code></td><td>Có</td><td>Ngày hóa đơn dùng làm trục biểu đồ.</td></tr>
+            <tr><td><code>syncedValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu ở trạng thái <code>synced</code>.</td></tr>
+            <tr><td><code>pendingValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu ở trạng thái <code>pending</code>.</td></tr>
+            <tr><td><code>ignoredValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu ở trạng thái <code>ignored</code>.</td></tr>
+            <tr><td><code>savedValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu ở trạng thái <code>saved</code>.</td></tr>
+            <tr><td><code>total</code></td><td><code>Int32</code></td><td>Có</td><td>Tổng của <code>syncedValue</code>, <code>pendingValue</code>, <code>ignoredValue</code> và <code>savedValue</code>.</td></tr>
+            <tr><td><code>createdAt</code></td><td><code>Date</code></td><td>Có</td><td>Thời điểm document thống kê được tạo.</td></tr>
+            <tr><td><code>updatedAt</code></td><td><code>Date</code></td><td>Có</td><td>Thời điểm số liệu được cập nhật gần nhất.</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Document mẫu:</h4>
+        <pre>{
+  "_id": ObjectId("66c000000000000000000040"),
+  "invoiceDate": ISODate("2024-01-01T00:00:00.000Z"),
+  "syncedValue": 1200,
+  "pendingValue": 480,
+  "ignoredValue": 210,
+  "savedValue": 550,
+  "total": 2440,
+  "createdAt": ISODate("2024-01-01T08:00:00.000Z"),
+  "updatedAt": ISODate("2024-01-01T08:00:00.000Z")
+}</pre>
+
+        <h4>Quy tắc aggregate:</h4>
+        <table>
+          <thead><tr><th>Field đích</th><th>Nguồn / điều kiện</th></tr></thead>
+          <tbody>
+            <tr><td><code>invoiceDate</code></td><td>Lấy từ ngày được xác định trong dữ liệu <code>externalaccountsyncs</code>; field nguồn cuối cùng cần BE xác nhận.</td></tr>
+            <tr><td><code>syncedValue</code></td><td>Cộng số lượng của các bản ghi có status <code>synced</code>.</td></tr>
+            <tr><td><code>pendingValue</code></td><td>Cộng số lượng của các bản ghi có status <code>pending</code>.</td></tr>
+            <tr><td><code>ignoredValue</code></td><td>Cộng số lượng của các bản ghi có status <code>ignored</code>.</td></tr>
+            <tr><td><code>savedValue</code></td><td>Cộng số lượng của các bản ghi có status <code>saved</code>.</td></tr>
+            <tr><td><code>total</code></td><td>Tính bằng tổng bốn field status sau khi aggregate cùng <code>invoiceDate</code>.</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Index đề xuất:</h4>
+        <pre>db.dashboardinvoicesyncstats.createIndex(
+  { "invoiceDate": 1 },
+  { "unique": true, "name": "ux_dashboardinvoicesyncstats_invoice_date" }
+)</pre>
+
+        <h4>Mapping sang payload FE:</h4>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "invoiceDate": "01-01-2024",
+      "syncedValue": 1200,
+      "pendingValue": 480,
+      "ignoredValue": 210,
+      "savedValue": 550,
+      "total": 2440
+    }
+  ]
+}</pre>
+      </div>
+    </section>
+
+    <!-- Gộp số liệu Calendar và phiên đồng bộ vào read-model phẳng để hai màn hình dùng chung một collection. -->
+    <section>
+      <h2>🗄️ 7. Thiết Kế Bảng MongoDB — Calendar & Lịch Sử Đồng Bộ</h2>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Collection đề xuất: <code>dashboardinvoicecalendar</code></span>
+          <span class="ui-badge">Đề xuất — cần BE xác nhận</span>
+        </div>
+        <p class="desc">Lưu read-model phẳng cho số liệu hóa đơn theo tháng/ngày và phiên đồng bộ của tài khoản. Mỗi document đại diện cho một phiên đồng bộ tại một <code>accountId</code> và <code>invoiceDate</code>; các field Calendar được dùng để tổng hợp theo ngày.</p>
+
+        <h4>Thiết kế document phẳng:</h4>
+        <table>
+          <thead><tr><th>Field</th><th>Kiểu MongoDB</th><th>Bắt buộc</th><th>Quy tắc / mục đích</th></tr></thead>
+          <tbody>
+            <tr><td><code>_id</code></td><td><code>ObjectId</code></td><td>Có</td><td>Định danh document.</td></tr>
+            <tr><td><code>accountId</code></td><td><code>ObjectId</code> hoặc <code>String</code></td><td>Có</td><td>Tài khoản thuế được chọn trên Calendar; kiểu dữ liệu cần BE xác nhận.</td></tr>
+            <tr><td><code>month</code></td><td><code>String</code></td><td>Có</td><td>Tháng tra cứu theo format <code>MM-YYYY</code>.</td></tr>
+            <tr><td><code>invoiceDate</code></td><td><code>Date</code></td><td>Có</td><td>Ngày hóa đơn, dùng để hiển thị Calendar và lọc lịch sử.</td></tr>
+            <tr><td><code>monthlyTotal</code></td><td><code>Int32</code></td><td>Có</td><td>Tổng số hóa đơn trong tháng của tài khoản.</td></tr>
+            <tr><td><code>purchaseValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng HĐ mua vào trong ngày.</td></tr>
+            <tr><td><code>soldValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng HĐ bán ra trong ngày.</td></tr>
+            <tr><td><code>purchasePosValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng HĐ mua vào máy tính tiền trong ngày.</td></tr>
+            <tr><td><code>soldPosValue</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng HĐ bán ra máy tính tiền trong ngày.</td></tr>
+            <tr><td><code>syncTime</code></td><td><code>Date</code></td><td>Có</td><td>Thời điểm của phiên đồng bộ; khác với <code>invoiceDate</code>.</td></tr>
+            <tr><td><code>syncTotal</code></td><td><code>Int32</code></td><td>Có</td><td>Tổng đầu phiếu trong phiên đồng bộ.</td></tr>
+            <tr><td><code>syncNeedSave</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu cần lưu trong phiên.</td></tr>
+            <tr><td><code>syncSaved</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu đã lưu trong phiên.</td></tr>
+            <tr><td><code>syncNewCount</code></td><td><code>Int32</code></td><td>Có</td><td>Số lượng đầu phiếu mới trong phiên.</td></tr>
+            <tr><td><code>createdAt</code></td><td><code>Date</code></td><td>Có</td><td>Thời điểm document được tạo.</td></tr>
+            <tr><td><code>updatedAt</code></td><td><code>Date</code></td><td>Có</td><td>Thời điểm document được cập nhật gần nhất.</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Document mẫu:</h4>
+        <pre>{
+  "_id": ObjectId("66c000000000000000000050"),
+  "accountId": ObjectId("66c000000000000000000020"),
+  "month": "09-2025",
+  "invoiceDate": ISODate("2025-09-07T00:00:00.000Z"),
+  "monthlyTotal": 160,
+  "purchaseValue": 10,
+  "soldValue": 10,
+  "purchasePosValue": 10,
+  "soldPosValue": 10,
+  "syncTime": ISODate("2025-09-07T14:30:00.000Z"),
+  "syncTotal": 60,
+  "syncNeedSave": 52,
+  "syncSaved": 50,
+  "syncNewCount": 2,
+  "createdAt": ISODate("2025-09-07T15:00:00.000Z"),
+  "updatedAt": ISODate("2025-09-07T15:00:00.000Z")
+}</pre>
+
+        <h4>Quy tắc tạo document:</h4>
+        <table>
+          <thead><tr><th>Nhóm dữ liệu</th><th>Nguồn / điều kiện</th></tr></thead>
+          <tbody>
+            <tr><td>Calendar</td><td>Aggregate hóa đơn theo <code>accountId</code> + <code>invoiceDate</code> từ dữ liệu nghiệp vụ; bốn field loại hóa đơn map vào bốn field <code>*Value</code>.</td></tr>
+            <tr><td><code>monthlyTotal</code></td><td>Tổng số hóa đơn của tài khoản trong tháng <code>MM-YYYY</code>.</td></tr>
+            <tr><td>Lịch sử đồng bộ</td><td>Đọc các phiên theo <code>accountId</code> + <code>invoiceDate</code> từ <code>externalaccountsyncs</code>.</td></tr>
+            <tr><td><code>syncTime</code></td><td>Mỗi phiên đồng bộ tạo một document riêng để API có thể phân trang.</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Index đề xuất:</h4>
+        <pre>db.dashboardinvoicecalendar.createIndex(
+  { "accountId": 1, "invoiceDate": 1, "syncTime": -1 },
+  { "name": "ix_dashboardinvoicecalendar_account_invoice_sync" }
+)
+
+db.dashboardinvoicecalendar.createIndex(
+  { "accountId": 1, "month": 1, "invoiceDate": 1 },
+  { "name": "ix_dashboardinvoicecalendar_account_month_invoice" }
+)</pre>
+
+        <h4>Mapping sang hai response FE:</h4>
+        <pre>Calendar:
+{
+  "success": true,
+  "data": {
+    "monthlyTotal": 160,
+    "dailyStats": [
+      {
+        "invoiceDate": "07-09-2025",
+        "items": [
+          { "type": "purchase", "count": 10 },
+          { "type": "sold", "count": 10 },
+          { "type": "purchase_pos", "count": 10 },
+          { "type": "sold_pos", "count": 10 }
+        ]
+      }
+    ]
+  }
+}
+
+Lịch sử đồng bộ:
+{
+  "success": true,
+  "data": {
+    "invoiceDate": "07-09-2025",
+    "items": [
+      {
+        "syncTime": "07-09-2025 14:30:00",
+        "total": 60,
+        "needSave": 52,
+        "saved": 50,
+        "newCount": 2
+      }
+    ]
+  }
+}</pre>
+      </div>
+    </section>
+
   </main>
 </body>
 </html>
