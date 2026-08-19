@@ -158,6 +158,8 @@
           <span class="card-title">Widget tổng hợp: 4 chỉ số thống kê tổng quan</span>
         </div>
         <p class="desc">FE cần một API trả về đồng thời tổng số BOT đang chạy, tài khoản kết nối, tài khoản đăng ký sử dụng và hóa đơn không thỏa mãn điều kiện.</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/overview</pre>
         <h4>Structure Payload Mong Muốn:</h4>
         <pre>{
   "success": true,
@@ -183,6 +185,8 @@
           <span class="card-title">Biểu đồ 1 & 2: Số lượng hóa đơn thiếu Chi tiết / XML</span>
         </div>
         <p class="desc">FE cần một lần gọi API trả về đồng thời số lượng hóa đơn bị thiếu Chi tiết và thiếu XML theo từng ngày trong khoảng thời gian chọn. Mỗi nhóm gồm số lượng có token, không có token và tổng số hóa đơn thiếu của ngày đó.</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/invoice-missing-assets</pre>
         <h4>Tham số truyền vào (Params):</h4>
         <table>
           <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
@@ -213,6 +217,8 @@
           <span class="card-title">Biểu đồ 3: Số lượng đầu phiếu hóa đơn đồng bộ</span>
         </div>
         <p class="desc">FE cần API thống kê số lượng đầu phiếu hóa đơn đồng bộ theo từng ngày. Mỗi ngày trả về số lượng theo 4 trạng thái và tổng số đầu phiếu.</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/invoice-sync-stats</pre>
         <h4>Tham số truyền vào (Params):</h4>
         <table>
           <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
@@ -248,6 +254,8 @@
           <span class="card-title">Danh sách Tài khoản thuế</span>
         </div>
         <p class="desc">FE cần API lấy danh sách Tài khoản thuế (hỗ trợ tìm kiếm theo MST/Tên) để hiển thị trong ô Chọn tài khoản.</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/tax-accounts</pre>
         <h4>Tham số truyền vào (Params):</h4>
         <table>
           <thead><tr><th>Tham số</th><th>Mô tả</th></tr></thead>
@@ -283,6 +291,8 @@
           <span class="card-title">Thống kê Số lượng Hóa đơn theo Tháng (Giao diện Lịch)</span>
         </div>
         <p class="desc">FE cần API trả về tổng số lượng đầu phiếu trong tháng và chi tiết số lượng hóa đơn theo ngày của 4 loại: <i>HĐ mua vào, HĐ bán ra, HĐ mua vào máy tính tiền, HĐ bán ra máy tính tiền</i> cho tài khoản thuế được chọn.</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/invoice-calendar</pre>
         <h4>Tham số truyền vào (Params):</h4>
         <table>
           <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
@@ -317,6 +327,8 @@
           <span class="card-title">Lịch sử đồng bộ theo Ngày</span>
         </div>
         <p class="desc">FE cần API lấy danh sách các phiên đồng bộ khi chọn một ngày trên Lịch (mặc định ngày hiện tại).</p>
+        <h4>Endpoint đề xuất:</h4>
+        <pre>GET /api/dashboard/sync-history</pre>
         <h4>Tham số truyền vào (Params):</h4>
         <table>
           <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
