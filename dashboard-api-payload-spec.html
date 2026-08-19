@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Yêu Cầu Dữ Liệu & Payload Response API Dashboard — Frontend Proposal</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue-primary: #1677ff;
+      --ink-primary: #0f172a;
+      --ink-secondary: #475569;
+      --line: #cbd5e1;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-code: #0f172a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg-page);
+      color: var(--ink-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      width: min(1140px, calc(100% - 32px));
+      margin: 32px auto 64px;
+    }
+
+    header {
+      padding: 32px;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #2563eb);
+      border-radius: 16px;
+      color: #fff;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+    }
+
+    h1 { margin: 0 0 8px; font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; }
+    p.subtitle { margin: 0; color: #94a3b8; font-size: 15px; }
+
+    h2 {
+      margin-top: 40px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--line);
+      color: var(--ink-primary);
+      font-size: 22px;
+    }
+
+    .info-box {
+      margin: 24px 0;
+      padding: 20px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-left: 5px solid var(--blue-primary);
+      border-radius: 12px;
+      color: #1e3a8a;
+    }
+
+    .card {
+      margin: 24px 0;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed var(--line);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .ui-badge {
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .desc {
+      margin: 14px 0;
+      color: var(--ink-secondary);
+      font-size: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      background: #fff;
+    }
+
+    th, td {
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+
+    code {
+      padding: 2px 6px;
+      background: #f1f5f9;
+      border-radius: 4px;
+      color: #0f172a;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 12px 0 0;
+      padding: 16px;
+      background: var(--bg-code);
+      color: #f1f5f9;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Đề Xuất Yêu Cầu Dữ Liệu & Payload Response (FE -> BE)</h1>
+      <p class="subtitle">Tập trung mô tả dữ liệu cần lấy & Cấu trúc Payload Json mong muốn cho 3 Màn hình UI (BE tự đặt tên API/Route)</p>
+    </header>
+
+    <!-- MÀN HÌNH 1 -->
+    <section>
+      <h2>📊 1. Dữ Liệu Cho 4 Widget Thống Kê Tổng Quan (Ảnh 1)</h2>
+
+      <!-- WIDGET 1 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Widget 1: BOT đang chạy</span>
+        </div>
+        <p class="desc">FE cần API đếm tổng số lượng BOT đang ở trạng thái hoạt động.</p>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "runningBots": 15
+  }
+}</pre>
+      </div>
+
+      <!-- WIDGET 2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Widget 2: Tài khoản kết nối</span>
+        </div>
+        <p class="desc">FE cần API trả về số lượng tài khoản thuế đã kết nối (có token) và tổng số tài khoản khai báo kết nối.</p>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "totalHasToken": 150,
+    "totalDeclared": 250
+  }
+}</pre>
+      </div>
+
+      <!-- WIDGET 3 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Widget 3: Tài khoản đăng ký sử dụng</span>
+        </div>
+        <p class="desc">FE cần API trả về tổng số lượng tài khoản người dùng đăng ký sử dụng.</p>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "totalRegistered": 100
+  }
+}</pre>
+      </div>
+
+      <!-- WIDGET 4 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Widget 4: Hóa đơn không thỏa mãn điều kiện</span>
+        </div>
+        <p class="desc">FE cần API đếm số lượng hóa đơn bị đánh dấu không thỏa mãn điều kiện.</p>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "unqualifiedCount": 15
+  }
+}</pre>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH 2 -->
+    <section>
+      <h2>📈 2. Dữ Liệu Cho Các Biểu Đồ Giám Sát Kỹ Thuật (Ảnh 2)</h2>
+      <p class="desc">Các biểu đồ nhận bộ lọc từ Toolbar: Từ ngày (<code>fromDate</code>) đến ngày (<code>toDate</code>).</p>
+
+      <!-- CHART 1 & 2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Biểu đồ 1 & 2: Số lượng hóa đơn thiếu Chi tiết / XML</span>
+        </div>
+        <p class="desc">FE cần API trả về danh sách số lượng hóa đơn bị thiếu Chi tiết (hoặc thiếu XML) theo từng ngày trong khoảng thời gian chọn, phân chia theo 2 trạng thái: <i>Có token</i> và <i>Không có token</i>.</p>
+        <h4>Tham số truyền vào (Params):</h4>
+        <table>
+          <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td><code>type</code></td><td>Loại asset thiếu: <code>detail</code> (Chi tiết) hoặc <code>xml</code> (XML)</td><td><code>detail</code></td></tr>
+            <tr><td><code>fromDate</code></td><td>Ngày bắt đầu (Format YYYY-MM-DD)</td><td><code>2024-01-01</code></td></tr>
+            <tr><td><code>toDate</code></td><td>Ngày kết thúc (Format YYYY-MM-DD)</td><td><code>2024-01-07</code></td></tr>
+          </tbody>
+        </table>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": [
+    { "date": "01/01/2024", "type": "Có token", "value": 500 },
+    { "date": "01/01/2024", "type": "Không có token", "value": 700 },
+    { "date": "02/01/2024", "type": "Có token", "value": 480 },
+    { "date": "02/01/2024", "type": "Không có token", "value": 670 }
+  ]
+}</pre>
+      </div>
+
+      <!-- CHART 3 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Biểu đồ 3: Số lượng đầu phiếu hóa đơn đồng bộ</span>
+        </div>
+        <p class="desc">FE cần API thống kê số lượng đầu phiếu hóa đơn đồng bộ theo ngày, phân nhóm theo 4 trạng thái: <i>Đồng bộ, Cần lấy, Không cần lấy, Đã lưu</i>.</p>
+        <h4>Tham số truyền vào (Params):</h4>
+        <table>
+          <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td><code>fromDate</code></td><td>Ngày bắt đầu (YYYY-MM-DD)</td><td><code>2024-01-01</code></td></tr>
+            <tr><td><code>toDate</code></td><td>Ngày kết thúc (YYYY-MM-DD)</td><td><code>2024-01-07</code></td></tr>
+          </tbody>
+        </table>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": [
+    { "date": "01/01/2024", "status": "synced", "label": "Đồng bộ", "count": 1200 },
+    { "date": "01/01/2024", "status": "pending", "label": "Cần lấy", "count": 480 },
+    { "date": "01/01/2024", "status": "ignored", "label": "Không cần lấy", "count": 210 },
+    { "date": "01/01/2024", "status": "saved", "label": "Đã lưu", "count": 550 }
+  ]
+}</pre>
+      </div>
+    </section>
+
+    <!-- MÀN HÌNH 3 -->
+    <section>
+      <h2>📅 3. Dữ Liệu Cho Lịch Thống Kê & Lịch Sử Đồng Bộ (Ảnh 3)</h2>
+
+      <!-- DROPDOWN ACCOUNT -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Danh sách Tài khoản thuế</span>
+        </div>
+        <p class="desc">FE cần API lấy danh sách Tài khoản thuế (hỗ trợ tìm kiếm theo MST/Tên) để hiển thị trong ô Chọn tài khoản.</p>
+        <h4>Tham số truyền vào (Params):</h4>
+        <table>
+          <thead><tr><th>Tham số</th><th>Mô tả</th></tr></thead>
+          <tbody>
+            <tr><td><code>keyword</code></td><td>Từ khóa tìm kiếm (MST hoặc Tên công ty)</td></tr>
+            <tr><td><code>page / limit</code></td><td>Phân trang (mặc định page=1, limit=20)</td></tr>
+          </tbody>
+        </table>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": [
+    {
+      "id": "69d9c8ad9e8b75f3f9581aaf",
+      "taxCode": "3700763669",
+      "companyName": "CÔNG TY TNHH RICH PRODUCTS VIỆT NAM"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 250,
+    "totalPages": 13,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  }
+}</pre>
+      </div>
+
+      <!-- CALENDAR DATA -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Thống kê Số lượng Hóa đơn theo Tháng (Giao diện Lịch)</span>
+        </div>
+        <p class="desc">FE cần API trả về tổng số lượng đầu phiếu trong tháng và chi tiết số lượng hóa đơn theo ngày của 4 loại: <i>HĐ mua vào, HĐ bán ra, HĐ mua vào máy tính tiền, HĐ bán ra máy tính tiền</i> cho tài khoản thuế được chọn.</p>
+        <h4>Tham số truyền vào (Params):</h4>
+        <table>
+          <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td><code>accountId</code></td><td>ID của Tài khoản thuế chọn ở Header</td><td><code>69d9c8ad...</code></td></tr>
+            <tr><td><code>month</code></td><td>Tháng cần xem (Format YYYY-MM)</td><td><code>2025-09</code></td></tr>
+          </tbody>
+        </table>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "monthlyTotal": 160,
+    "dailyStats": [
+      {
+        "date": "01/09/2025",
+        "items": [
+          { "type": "purchase", "label": "HĐ mua vào", "count": 10 },
+          { "type": "sold", "label": "HĐ bán ra", "count": 10 },
+          { "type": "purchase_pos", "label": "HĐ mua vào máy tính tiền", "count": 10 },
+          { "type": "sold_pos", "label": "HĐ bán ra máy tính tiền", "count": 10 }
+        ]
+      }
+    ]
+  }
+}</pre>
+      </div>
+
+      <!-- SYNC HISTORY -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Lịch sử đồng bộ theo Ngày</span>
+        </div>
+        <p class="desc">FE cần API lấy danh sách các phiên đồng bộ khi chọn một ngày trên Lịch (mặc định ngày hiện tại).</p>
+        <h4>Tham số truyền vào (Params):</h4>
+        <table>
+          <thead><tr><th>Tham số</th><th>Mô tả</th><th>Ví dụ</th></tr></thead>
+          <tbody>
+            <tr><td><code>accountId</code></td><td>ID tài khoản thuế</td><td><code>69d9c8ad...</code></td></tr>
+            <tr><td><code>date</code></td><td>Ngày xem lịch sử (Format YYYY-MM-DD)</td><td><code>2025-09-07</code></td></tr>
+          </tbody>
+        </table>
+        <h4>Structure Payload Mong Muốn:</h4>
+        <pre>{
+  "success": true,
+  "data": {
+    "selectedDate": "07/09/2025",
+    "items": [
+      {
+        "index": 10,
+        "syncTime": "11/09/2025 14:30:00",
+        "total": 60,
+        "needSave": 52,
+        "saved": 50,
+        "newCount": 2
+      },
+      {
+        "index": 9,
+        "syncTime": "10/09/2025 09:15:00",
+        "total": 60,
+        "needSave": 52,
+        "saved": 50,
+        "newCount": 2
+      }
+    ]
+  },
+  "pagination": {
+    "page": 1,
+    "limit": 20,
+    "total": 10,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}</pre>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
