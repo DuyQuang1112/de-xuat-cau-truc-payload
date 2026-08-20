@@ -1,0 +1,866 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kế Hoạch Job Đồng Bộ Dữ Liệu Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --blue-primary: #1677ff;
+      --ink-primary: #0f172a;
+      --ink-secondary: #475569;
+      --line: #cbd5e1;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-code: #0f172a;
+      --blue-soft: #eff6ff;
+      --amber-soft: #fffbeb;
+      --amber-line: #f59e0b;
+      --green-soft: #f0fdf4;
+      --green-line: #22c55e;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg-page);
+      color: var(--ink-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    .page {
+      width: min(1400px, calc(100% - 32px));
+      margin: 32px auto 64px;
+    }
+
+    .document-layout {
+      display: grid;
+      grid-template-columns: 238px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 24px;
+      padding: 20px 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .sidebar-label {
+      margin: 0 10px 4px;
+      color: var(--blue-primary);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .sidebar-title {
+      margin: 0 10px 16px;
+      color: var(--ink-primary);
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .sidebar-nav {
+      display: grid;
+      gap: 4px;
+    }
+
+    .sidebar-link {
+      display: block;
+      padding: 9px 10px;
+      border-left: 3px solid transparent;
+      border-radius: 0 8px 8px 0;
+      color: var(--ink-secondary);
+      font-size: 13px;
+      line-height: 1.35;
+      text-decoration: none;
+      transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+    }
+
+    .sidebar-link:hover,
+    .sidebar-link:focus-visible {
+      background: var(--blue-soft);
+      color: #1d4ed8;
+      outline: none;
+    }
+
+    .sidebar-link.is-active {
+      border-left-color: var(--blue-primary);
+      background: var(--blue-soft);
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .content { min-width: 0; }
+
+    [id] { scroll-margin-top: 24px; }
+
+    header {
+      padding: 32px;
+      background: linear-gradient(135deg, #0f172a, #1e293b, #2563eb);
+      border-radius: 16px;
+      color: #fff;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.15);
+    }
+
+    h1 { margin: 0 0 8px; font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; }
+    h2 {
+      margin-top: 40px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid var(--line);
+      color: var(--ink-primary);
+      font-size: 22px;
+    }
+    h3 { margin-top: 28px; color: var(--ink-primary); font-size: 18px; }
+    h4 { margin: 20px 0 8px; color: var(--ink-primary); }
+    p.subtitle { margin: 0; color: #cbd5e1; font-size: 15px; }
+
+    .card {
+      margin: 24px 0;
+      padding: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed var(--line);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title { font-size: 18px; font-weight: 700; }
+
+    .ui-badge {
+      padding: 4px 12px;
+      border-radius: 6px;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .ui-badge.warning { background: #fef3c7; color: #92400e; }
+    .ui-badge.success { background: #dcfce7; color: #166534; }
+    .text-danger { color: #dc2626; font-weight: 700; }
+
+    .desc { margin: 14px 0; color: var(--ink-secondary); font-size: 15px; }
+
+    .info-box,
+    .warning-box,
+    .success-box {
+      margin: 24px 0;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    .info-box { background: var(--blue-soft); border: 1px solid #bfdbfe; border-left: 5px solid var(--blue-primary); color: #1e3a8a; }
+    .warning-box { background: var(--amber-soft); border: 1px solid #fde68a; border-left: 5px solid var(--amber-line); color: #78350f; }
+    .success-box { background: var(--green-soft); border: 1px solid #bbf7d0; border-left: 5px solid var(--green-line); color: #14532d; }
+
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; background: #fff; }
+    th, td { padding: 10px 14px; border: 1px solid var(--line); text-align: left; vertical-align: top; font-size: 14px; }
+    th { background: #f8fafc; font-weight: 600; }
+
+    code {
+      padding: 2px 6px;
+      background: #f1f5f9;
+      border-radius: 4px;
+      color: #0f172a;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      font-size: 13px;
+    }
+
+    pre {
+      overflow-x: auto;
+      margin: 12px 0 0;
+      padding: 16px;
+      background: var(--bg-code);
+      color: #f1f5f9;
+      border-radius: 8px;
+      font-size: 13.5px;
+      font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
+      line-height: 1.5;
+    }
+
+    ul, ol { padding-left: 24px; }
+    li { margin: 6px 0; }
+    a { color: #1d4ed8; }
+
+    @media (max-width: 900px) {
+      .document-layout { grid-template-columns: 1fr; }
+      .sidebar { top: 12px; z-index: 10; padding: 14px; }
+      .sidebar-label, .sidebar-title { display: inline; margin: 0; }
+      .sidebar-label { margin-right: 8px; }
+      .sidebar-nav { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; }
+      .sidebar-link { flex: 0 0 auto; border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; }
+      .sidebar-link.is-active { border-color: var(--blue-primary); }
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 20px, 1320px); margin-top: 10px; }
+      header { padding: 24px; }
+      .card { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="document-layout">
+      <aside class="sidebar" aria-label="Điều hướng tài liệu">
+        <p class="sidebar-label">Kế hoạch</p>
+        <p class="sidebar-title">Job Dashboard</p>
+        <nav class="sidebar-nav" aria-label="Các phần trong tài liệu">
+          <a class="sidebar-link is-active" href="#document-intro">Giới thiệu</a>
+          <a class="sidebar-link" href="#scope">1. Phạm vi</a>
+          <a class="sidebar-link" href="#source-target">2. Source → Target</a>
+          <a class="sidebar-link" href="#job-design">3. Thiết kế Job</a>
+          <a class="sidebar-link" href="#job-overview">4. Job Overview</a>
+          <a class="sidebar-link" href="#job-missing-assets">5. Job Missing Assets</a>
+          <a class="sidebar-link" href="#job-calendar">6. Job Calendar</a>
+          <a class="sidebar-link" href="#job-sync">7. Job Sync</a>
+          <a class="sidebar-link" href="index.html">← Về tài liệu payload</a>
+        </nav>
+      </aside>
+
+      <div class="content">
+        <header id="document-intro">
+          <h1>Kế Hoạch Job Đồng Bộ Dữ Liệu Dashboard</h1>
+          <p class="subtitle">Kế hoạch nạp dữ liệu từ collection hiện hữu vào các collection đích được đề xuất trong index.html</p>
+        </header>
+
+        <div class="warning-box">
+          <strong>Trạng thái tài liệu: Draft — chưa baseline.</strong>
+          <p>Đây là kế hoạch triển khai dự kiến dựa trên source cũ và snapshot database read-only. Các mapping có nhãn “Decision gate” phải được BE/BA xác nhận trước khi viết job production.</p>
+        </div>
+
+        <section id="scope">
+          <h2>1. Phạm vi &amp; mục tiêu</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Mục tiêu triển khai</span>
+              <span class="ui-badge">DOC-15 Draft</span>
+            </div>
+            <ul>
+              <li>Đọc dữ liệu từ các collection nghiệp vụ hiện hữu.</li>
+              <li>Aggregate theo ngày, tài khoản, loại asset và trạng thái cần thiết cho dashboard.</li>
+              <li>Ghi idempotent vào các collection đích: <code>dashboardwidgets</code>, <code>dashboardmissingassets</code>, <code>dashboardinvoicesyncstats</code> và <code>dashboardinvoicecalendar</code>.</li>
+              <li>Cung cấp cơ chế backfill, incremental refresh, retry, reconciliation và audit log.</li>
+            </ul>
+
+            <h3>Phạm vi không bao gồm</h3>
+            <ul>
+              <li>Không thay đổi dữ liệu nghiệp vụ trong <code>externalaccounts</code>, <code>invoiceraws</code> hoặc <code>externalaccountsyncs</code>.</li>
+              <li>Không copy <code>password</code>, <code>token</code>, cookie, XML, raw body hoặc detail vào bảng đích.</li>
+              <li>Không triển khai API FE/BE trong tài liệu này.</li>
+            </ul>
+          </div>
+
+          <div class="info-box">
+            <strong>Snapshot đã kiểm tra read-only:</strong> database là <code>HDDVLCDev</code>. Các collection đích được đề xuất trong index.html hiện chưa tồn tại; kế hoạch dưới đây bao gồm bước tạo schema/index trước khi chạy job.
+          </div>
+        </section>
+
+        <section id="source-target">
+          <h2>2. Source → Target mapping</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Mapping collection và field</span>
+              <span class="ui-badge warning">Cần chốt contract</span>
+            </div>
+            <table>
+              <thead>
+                <tr><th>Target</th><th>Source</th><th>Logic nạp dự kiến</th><th>Trạng thái</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>dashboardwidgets</code></td>
+                  <td><code>botconnection</code>, <code>externalaccounts</code>, <code>useraccounts</code>, <code>invoiceraws</code></td>
+                  <td><code>connected = true</code>; account GOV có token; số account GOV; số user account; <code>data.ttxly = 4</code> là candidate cho hóa đơn không đủ điều kiện.</td>
+                  <td><span class="text-danger">Chưa rõ điều kiện chính xác</span></td>
+                </tr>
+                <tr>
+                  <td><code>dashboardmissingassets</code></td>
+                  <td><code>invoiceraws</code> + <code>externalaccounts</code></td>
+                  <td><code>data.tdlap</code>; tách độc lập <code>assets.xml.done = false</code> và <code>assets.detail.done = false</code>; join <code>account</code> để xác định có token.</td>
+                  <td>Có thể triển khai theo UTC+7; phạm vi account vẫn cần chốt.</td>
+                </tr>
+                <tr>
+                  <td><code>dashboardinvoicesyncstats</code></td>
+                  <td>Candidate: <code>externalaccountsyncs</code></td>
+                  <td>Collection hiện có <code>status/status_code</code>, <code>total</code>, <code>synced</code>, <code>created</code>, nhưng chưa có trực tiếp <code>invoiceDate</code>, <code>ignored</code>, <code>saved</code>.</td>
+                  <td>Blocked cho đến khi chốt cách tính 4 status.</td>
+                </tr>
+                <tr>
+                  <td><code>dashboardinvoicecalendar</code></td>
+                  <td><code>invoiceraws</code> + <code>externalaccountsyncs</code></td>
+                  <td>Calendar group theo account/ngày/from/type; lịch sử đọc theo account và phiên sync.</td>
+                  <td>Cần quyết định có dùng chung collection hay tách read-model.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Số liệu snapshot để làm baseline kiểm thử</span>
+              <span class="ui-badge">Có thể thay đổi theo thời điểm</span>
+            </div>
+            <table>
+              <thead><tr><th>Collection</th><th>Metric</th><th>Giá trị tại thời điểm kiểm tra</th></tr></thead>
+              <tbody>
+                <tr><td><code>externalaccounts</code></td><td>GOV / GOV visible / GOV có token</td><td>37 / 23 / 8</td></tr>
+                <tr><td><code>useraccounts</code></td><td>Tổng document</td><td>298</td></tr>
+                <tr><td><code>invoiceraws</code></td><td>Tổng / XML chưa xong / Detail chưa xong</td><td>79.107 / 76.077 / 29.299</td></tr>
+                <tr><td><code>externalaccountsyncs</code></td><td>Phiên sync / total / synced / created</td><td>16.774 / 58.226 / 58.218 / 3.686</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="job-design">
+          <h2>3. Thiết kế Job &amp; lịch chạy</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Luồng xử lý chuẩn</span>
+              <span class="ui-badge success">Đề xuất</span>
+            </div>
+            <!-- Job phải idempotent vì source có thể cập nhật muộn và scheduler có thể retry cùng một khoảng thời gian. -->
+            <pre>Source collections
+  ↓ read-only query theo checkpoint/date range
+Normalize UTC+7 (Asia/Ho_Chi_Minh) + validate source fields
+  ↓ aggregate theo deterministic key
+Upsert target collection + ghi job_run audit
+  ↓ reconciliation counts/checksum
+Mark checkpoint thành công hoặc retry</pre>
+
+            <h3>Job list</h3>
+            <table>
+              <thead><tr><th>Job</th><th>Trigger dự kiến</th><th>Input</th><th>Upsert key</th></tr></thead>
+              <tbody>
+                <tr><td><code>dashboard-overview-refresh</code></td><td>Mỗi 30 phút</td><td>4 source collections</td><td>Singleton key cần BE chốt: fixed <code>_id</code> hoặc <code>metricKey = overview</code>.</td></tr>
+                <tr><td><code>dashboard-missing-assets-refresh</code></td><td>Mỗi 30 phút</td><td><code>invoiceraws</code>, <code>externalaccounts</code></td><td><code>invoiceDate + assetType + hasToken</code>.</td></tr>
+                <tr><td><code>dashboard-calendar-refresh</code></td><td>Mỗi 30 phút</td><td><code>invoiceraws</code></td><td><code>accountId + month + invoiceDate + recordType</code>.</td></tr>
+                <tr><td><code>dashboard-sync-history-refresh</code></td><td>Mỗi 30 phút</td><td><code>externalaccountsyncs</code></td><td><code>accountId + syncId</code>.</td></tr>
+                <tr><td><code>dashboard-sync-stats-refresh</code></td><td>Mỗi 30 phút</td><td><code>externalaccountsyncs</code> hoặc source mới</td><td>Chưa chốt vì thiếu <code>invoiceDate/ignored/saved</code>.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Backfill strategy</h3>
+            <ol>
+              <li>Chuẩn hóa mọi ngày theo UTC+7 (Asia/Ho_Chi_Minh).</li>
+              <li>Chạy thử 1 ngày trên môi trường UAT, ghi source count và target count.</li>
+              <li>Backfill theo batch ngày hoặc tuần, có checkpoint và giới hạn memory.</li>
+              <li>Chạy reconciliation sau từng batch trước khi chuyển sang batch kế tiếp.</li>
+              <li>Chuyển sang incremental job với lookback để bắt late-arriving source record.</li>
+            </ol>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">Kiểm soát vận hành</span>
+              <span class="ui-badge">NFR</span>
+            </div>
+            <table>
+              <thead><tr><th>Control</th><th>Yêu cầu</th></tr></thead>
+              <tbody>
+                <tr><td>Idempotency</td><td>Chạy lại cùng date range không tạo duplicate và không làm tăng count.</td></tr>
+                <tr><td>Lock</td><td>Mỗi target/date partition chỉ có một worker xử lý tại một thời điểm.</td></tr>
+                <tr><td>Retry</td><td>Retry lỗi transient; không retry vô hạn với lỗi schema hoặc mapping.</td></tr>
+                <tr><td>Audit</td><td>Ghi job name, range, started/finished, source count, target count, error và checkpoint.</td></tr>
+                <tr><td>Security</td><td>DB user chỉ có quyền read source và write target; không ghi secret vào log.</td></tr>
+                <tr><td>Observability</td><td>Alert khi job fail, lag checkpoint, source-target lệch hoặc target không cập nhật.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="job-overview">
+          <h2>4. Job — Overview Widget</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><code>dashboard-overview-refresh</code> → <code>dashboardwidgets</code></span>
+              <span class="ui-badge success">Mỗi 30 phút</span>
+            </div>
+            <p class="desc">Tạo một snapshot tổng hợp cho widget overview. Job không nhận date range; mỗi lần chạy tính lại toàn bộ các metric hiện tại trong phạm vi account đã chốt.</p>
+
+            <h3>Source và field mapping</h3>
+            <table>
+              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
+              <tbody>
+                <tr><td><code>runningBots</code></td><td>Tổng số BOT đang chạy tại thời điểm cập nhật.</td><td><code>botconnection.connected</code></td><td><code>countDocuments({ connected: true })</code></td><td>Không dùng tổng document nếu mục tiêu là BOT đang chạy.</td></tr>
+                <tr><td><code>totalHasToken</code></td><td>Tổng số tài khoản thuế đã có token.</td><td><code>externalaccounts</code></td><td>Toàn bộ: <code>countDocuments({ type: 'hoadondientu-gov', token: { $exists: true, $nin: [null, ''] } })</code>. Nếu chỉ tính tài khoản đang hiển thị: thêm <code>visible: true</code>.</td><td>Chỉ đọc trạng thái token; không ghi token sang target.</td></tr>
+                <tr><td><code>totalDeclared</code></td><td>Tổng số tài khoản thuế đã khai báo kết nối.</td><td><code>externalaccounts</code></td><td>Toàn bộ: <code>countDocuments({ type: 'hoadondientu-gov' })</code>. Nếu chỉ tính tài khoản đang hiển thị: thêm <code>visible: true</code>.</td><td>Cần chốt một trong hai phạm vi để widget và dropdown dùng cùng cách tính.</td></tr>
+                <tr><td><code>totalRegistered</code></td><td>Tổng số tài khoản người dùng đăng ký sử dụng.</td><td><code>useraccounts</code></td><td><code>countDocuments()</code></td><td>Đếm user account theo database hiện tại.</td></tr>
+                <tr><td><code>unqualifiedCount</code></td><td>Số lượng hóa đơn bị đánh dấu không thỏa mãn điều kiện.</td><td><code>invoiceraws.data.ttxly</code></td><td>Candidate: <code>data.ttxly = 4</code>.</td><td><span class="text-danger">Chưa rõ điều kiện chính xác</span></td></tr>
+              </tbody>
+            </table>
+
+            <h3>Query đề xuất</h3>
+            <pre>const govFilter = { type: "hoadondientu-gov" };
+const govTokenFilter = {
+  ...govFilter,
+  token: { $exists: true, $nin: [null, ""] }
+};
+
+const overview = {
+  runningBots: db.getCollection("botconnection")
+    .countDocuments({ connected: true }),
+  totalHasToken: db.getCollection("externalaccounts")
+    .countDocuments(govTokenFilter),
+  totalDeclared: db.getCollection("externalaccounts")
+    .countDocuments(govFilter),
+  totalRegistered: db.getCollection("useraccounts")
+    .countDocuments(),
+  unqualifiedCount: db.getCollection("invoiceraws")
+    .countDocuments({ "data.ttxly": 4 })
+};</pre>
+            <p class="desc">Nếu chốt chỉ tính account đang hiển thị, thêm <code>visible: true</code> vào <code>govFilter</code> và <code>govTokenFilter</code>.</p>
+
+            <h3>Execution flow</h3>
+            <!-- Snapshot phải được tính hoàn chỉnh trước khi upsert để một source query lỗi không tạo document tổng hợp một phần. -->
+            <ol>
+              <li>Đọc 4 source collection bằng projection allow-list.</li>
+              <li>Tính toàn bộ metric trong memory hoặc temporary result.</li>
+              <li>Validate metric là số nguyên không âm và không có field nhạy cảm.</li>
+              <li>Upsert một document duy nhất theo fixed <code>_id</code> hoặc <code>metricKey = overview</code>.</li>
+              <li>Ghi <code>sourceSnapshotAt</code>, <code>jobRunId</code> và thời gian cập nhật.</li>
+            </ol>
+
+            <h3>Retry và reconciliation</h3>
+            <table>
+              <thead><tr><th>Trường hợp</th><th>Xử lý</th></tr></thead>
+              <tbody>
+                <tr><td>Source query timeout / transient error</td><td>Không upsert snapshot mới; retry theo scheduler.</td></tr>
+                <tr><td>Schema field không tồn tại</td><td>Đánh dấu job failed và alert; không tự dùng giá trị mặc định.</td></tr>
+                <tr><td>Rerun cùng thời điểm</td><td>Upsert cùng singleton key, không tạo document thứ hai.</td></tr>
+                <tr><td>Kiểm tra sau job</td><td>So sánh từng metric target với kết quả query source của cùng run.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="job-missing-assets">
+          <h2>5. Job — Missing XML / Detail</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><code>dashboard-missing-assets-refresh</code> → <code>dashboardmissingassets</code></span>
+              <span class="ui-badge success">Mỗi 30 phút</span>
+            </div>
+            <p class="desc">Aggregate số hóa đơn thiếu XML hoặc Detail theo ngày và trạng thái token. XML và Detail phải được xử lý độc lập.</p>
+
+            <h3>Source và field mapping</h3>
+            <table>
+              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
+              <tbody>
+                <tr><td><code>_id</code></td><td>Định danh document thống kê.</td><td>MongoDB</td><td>Tự sinh khi insert.</td><td>Không dùng làm business key.</td></tr>
+                <tr><td><code>invoiceDate</code></td><td>Ngày hóa đơn, chuẩn hóa theo UTC+7 trước khi aggregate.</td><td><code>invoiceraws.data.tdlap</code></td><td>Lọc theo date range incremental.</td><td>Dùng cố định UTC+7 (Asia/Ho_Chi_Minh).</td></tr>
+                <tr><td><code>assetType</code></td><td>Chỉ nhận <code>xml</code> hoặc <code>detail</code>.</td><td><code>invoiceraws.assets.xml/detail.done</code></td><td><code>done = false</code> tương ứng từng nhánh.</td><td>XML và Detail aggregate độc lập.</td></tr>
+                <tr><td><code>hasToken</code></td><td><code>true</code> nếu tài khoản có token; <code>false</code> nếu không có hoặc token rỗng.</td><td><code>externalaccounts.token</code></td><td>Join <code>invoiceraws.account = externalaccounts._id</code>.</td><td>Không copy token vào target.</td></tr>
+                <tr><td><code>value</code></td><td>Số lượng hóa đơn thuộc cùng tổ hợp <code>invoiceDate</code>, <code>assetType</code> và <code>hasToken</code>.</td><td><code>invoiceraws._id</code></td><td>Count sau khi group theo 3 key.</td><td>Rerun phải ghi đè đúng bucket.</td></tr>
+                <tr><td><code>createdAt</code></td><td>Thời điểm document thống kê được tạo.</td><td>Job runtime</td><td>Set khi insert lần đầu.</td><td>Không dùng để lọc hóa đơn.</td></tr>
+                <tr><td><code>updatedAt</code></td><td>Thời điểm số liệu được cập nhật gần nhất.</td><td>Job runtime</td><td>Set sau mỗi upsert thành công.</td><td>Dùng để theo dõi freshness.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Query đề xuất</h3>
+            <pre>const fromDate = ISODate("2026-08-01T00:00:00.000Z");
+const toDate = ISODate("2026-08-08T00:00:00.000Z");
+
+db.getCollection("invoiceraws").aggregate([
+  {
+    $match: {
+      "data.tdlap": { $gte: fromDate, $lt: toDate }
+    }
+  },
+  {
+    $lookup: {
+      from: "externalaccounts",
+      localField: "account",
+      foreignField: "_id",
+      as: "accountInfo"
+    }
+  },
+  {
+    $unwind: {
+      path: "$accountInfo",
+      preserveNullAndEmptyArrays: true
+    }
+  },
+  {
+    $set: {
+      hasToken: {
+        $and: [
+          { $ne: ["$accountInfo.token", null] },
+          { $ne: ["$accountInfo.token", ""] }
+        ]
+      }
+    }
+  },
+  {
+    $facet: {
+      xml: [
+        { $match: { "assets.xml.done": false } },
+        { $set: { assetType: "xml" } },
+        {
+          $group: {
+            _id: {
+              invoiceDate: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$data.tdlap",
+                  timezone: "Asia/Ho_Chi_Minh"
+                }
+              },
+              assetType: "$assetType",
+              hasToken: "$hasToken"
+            },
+            value: { $sum: 1 }
+          }
+        }
+      ],
+      detail: [
+        { $match: { "assets.detail.done": false } },
+        { $set: { assetType: "detail" } },
+        {
+          $group: {
+            _id: {
+              invoiceDate: {
+                $dateToString: {
+                  format: "%Y-%m-%d",
+                  date: "$data.tdlap",
+                  timezone: "Asia/Ho_Chi_Minh"
+                }
+              },
+              assetType: "$assetType",
+              hasToken: "$hasToken"
+            },
+            value: { $sum: 1 }
+          }
+        }
+      ]
+    }
+  }
+]);</pre>
+            <p class="desc">Kết quả group được upsert vào <code>dashboardmissingassets</code>; không ghi <code>accountInfo.token</code> vào kết quả.</p>
+
+            <h3>Execution flow</h3>
+            <!-- XML và Detail được aggregate riêng vì một invoice có thể thiếu đồng thời cả hai asset. -->
+            <ol>
+              <li>Xác định partition ngày cần chạy từ checkpoint và lookback window.</li>
+              <li>Chạy hai nhánh filter XML và Detail độc lập.</li>
+              <li>Join token theo account bằng projection chỉ gồm <code>_id</code> và trạng thái có token.</li>
+              <li>Group theo <code>invoiceDate + assetType + hasToken</code>, đếm <code>invoiceraws._id</code>.</li>
+              <li>Upsert target theo unique key <code>invoiceDate + assetType + hasToken</code>.</li>
+              <li>Xóa hoặc cập nhật lại các bucket của partition khi invoice source đã chuyển sang <code>done = true</code>.</li>
+            </ol>
+
+            <h3>Retry và reconciliation</h3>
+            <table>
+              <thead><tr><th>Trường hợp</th><th>Xử lý / expected result</th></tr></thead>
+              <tbody>
+                <tr><td>Source query timeout / transient error</td><td>Không upsert partition chưa hoàn chỉnh; retry ở lần chạy kế tiếp.</td></tr>
+                <tr><td>Bucket total</td><td><code>total = hasTokenValue + noTokenValue</code> cho từng ngày và asset.</td></tr>
+                <tr><td>XML/Detail independence</td><td>Một invoice thiếu cả hai asset được tính ở cả hai asset bucket.</td></tr>
+                <tr><td>Source reconciliation</td><td>Tổng target của partition bằng aggregate trực tiếp từ source cùng filter.</td></tr>
+                <tr><td>Late update</td><td>Invoice vừa hoàn tất asset không còn nằm trong bucket sau lần refresh kế tiếp.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="job-calendar">
+          <h2>6. Job — Invoice Calendar</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><code>dashboard-calendar-refresh</code> → <code>dashboardinvoicecalendar</code></span>
+              <span class="ui-badge success">Mỗi 30 phút</span>
+            </div>
+            <p class="desc">Tạo read-model số lượng hóa đơn theo tài khoản, tháng, ngày và 4 loại nghiệp vụ để Calendar đọc nhanh.</p>
+
+            <h3>Source và field mapping</h3>
+            <table>
+              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
+              <tbody>
+                <tr><td><code>_id</code></td><td>Định danh document.</td><td>MongoDB</td><td>Tự sinh khi insert.</td><td>Không dùng làm business key.</td></tr>
+                <tr><td><code>accountId</code></td><td>Tài khoản thuế được chọn trên Calendar; kiểu dữ liệu cần BE xác nhận.</td><td><code>invoiceraws.account</code></td><td>Group riêng theo account.</td><td>Không trộn dữ liệu giữa các account.</td></tr>
+                <tr><td><code>month</code></td><td>Tháng tra cứu theo format <code>MM-YYYY</code>.</td><td><code>invoiceDate</code></td><td>Format từ tháng của <code>data.tdlap</code>.</td><td>Dùng trong filter Calendar.</td></tr>
+                <tr><td><code>invoiceDate</code></td><td>Ngày hóa đơn, dùng để hiển thị Calendar và lọc lịch sử.</td><td><code>invoiceraws.data.tdlap</code></td><td>Chuẩn hóa theo UTC+7 (Asia/Ho_Chi_Minh).</td><td>Đây là ngày hóa đơn, không phải ngày chạy job.</td></tr>
+                <tr><td><code>monthlyTotal</code></td><td>Tổng số hóa đơn trong tháng của tài khoản.</td><td>4 field loại hóa đơn</td><td>Sum theo account/month.</td><td>Phải khớp tổng daily stats.</td></tr>
+                <tr><td><code>purchaseValue</code></td><td>Số lượng HĐ mua vào trong ngày.</td><td><code>invoiceraws.from/type</code></td><td><code>from = query</code> + <code>type = purchase</code>.</td><td>Target type: <code>purchase</code>.</td></tr>
+                <tr><td><code>soldValue</code></td><td>Số lượng HĐ bán ra trong ngày.</td><td><code>invoiceraws.from/type</code></td><td><code>from = query</code> + <code>type = sold</code>.</td><td>Target type: <code>sold</code>.</td></tr>
+                <tr><td><code>purchasePosValue</code></td><td>Số lượng HĐ mua vào máy tính tiền trong ngày.</td><td><code>invoiceraws.from/type</code></td><td><code>from = sco-query</code> + <code>type = purchase</code>.</td><td>Target type: <code>purchase_pos</code>.</td></tr>
+                <tr><td><code>soldPosValue</code></td><td>Số lượng HĐ bán ra máy tính tiền trong ngày.</td><td><code>invoiceraws.from/type</code></td><td><code>from = sco-query</code> + <code>type = sold</code>.</td><td>Target type: <code>sold_pos</code>.</td></tr>
+                <tr><td><code>syncTime</code></td><td>Thời điểm của phiên đồng bộ; khác với <code>invoiceDate</code>.</td><td><code>externalaccountsyncs.created_date</code></td><td>Job Sync History map trực tiếp sang thời điểm phiên.</td><td>Không do Calendar aggregate tạo.</td></tr>
+                <tr><td><code>syncTotal</code></td><td>Tổng đầu phiếu trong phiên đồng bộ.</td><td><code>externalaccountsyncs.total</code></td><td>Map trực tiếp theo <code>sourceSyncId</code>.</td><td>Được nạp bởi Job Sync History.</td></tr>
+                <tr><td><code>syncNeedSave</code></td><td>Số lượng đầu phiếu cần lưu trong phiên.</td><td><code>externalaccountsyncs.synced</code> hoặc source được xác nhận</td><td>Chưa tự map vì semantics source khác target.</td><td>Cần BE/BA xác nhận.</td></tr>
+                <tr><td><code>syncSaved</code></td><td>Số lượng đầu phiếu đã lưu trong phiên.</td><td><code>externalaccountsyncs.synced</code> hoặc source được xác nhận</td><td>Chưa tự map theo tên field.</td><td>Cần BE/BA xác nhận.</td></tr>
+                <tr><td><code>syncNewCount</code></td><td>Số lượng đầu phiếu mới trong phiên.</td><td><code>externalaccountsyncs.created</code></td><td>Candidate theo UI cũ.</td><td>Cần BE/BA xác nhận.</td></tr>
+                <tr><td><code>createdAt</code></td><td>Thời điểm document được tạo.</td><td>Job runtime</td><td>Set khi insert lần đầu.</td><td>Không phải <code>invoiceDate</code> hoặc <code>syncTime</code>.</td></tr>
+                <tr><td><code>updatedAt</code></td><td>Thời điểm document được cập nhật gần nhất.</td><td>Job runtime</td><td>Set sau mỗi upsert thành công.</td><td>Dùng để theo dõi freshness.</td></tr>
+                <tr><td><code>recordType</code></td><td>Phân biệt document Calendar và History nếu dùng chung collection.</td><td>Job runtime</td><td><code>calendar</code> hoặc <code>history</code>.</td><td>Field kỹ thuật cần bổ sung vào schema target.</td></tr>
+                <tr><td><code>sourceSyncId</code></td><td>Khóa nguồn dùng để chống duplicate cho phiên đồng bộ.</td><td><code>externalaccountsyncs._id</code></td><td>Copy reference ID, không copy payload.</td><td>Field kỹ thuật cần bổ sung cho Job Sync History.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Query đề xuất</h3>
+            <pre>const accountId = ObjectId("66c000000000000000000020");
+const fromDate = ISODate("2026-08-01T00:00:00.000Z");
+const toDate = ISODate("2026-09-01T00:00:00.000Z");
+
+db.getCollection("invoiceraws").aggregate([
+  {
+    $match: {
+      account: accountId,
+      "data.tdlap": { $gte: fromDate, $lt: toDate },
+      $or: [
+        { from: "query", type: "purchase" },
+        { from: "sco-query", type: "purchase" },
+        { from: "query", type: "sold" },
+        { from: "sco-query", type: "sold" }
+      ]
+    }
+  },
+  {
+    $set: {
+      invoiceDate: {
+        $dateTrunc: {
+          date: "$data.tdlap",
+          unit: "day",
+          timezone: "Asia/Ho_Chi_Minh"
+        }
+      },
+      recordType: {
+        $switch: {
+          branches: [
+            { case: { $and: [{ $eq: ["$from", "query"] }, { $eq: ["$type", "purchase"] }] }, then: "purchase" },
+            { case: { $and: [{ $eq: ["$from", "sco-query"] }, { $eq: ["$type", "purchase"] }] }, then: "purchase_pos" },
+            { case: { $and: [{ $eq: ["$from", "query"] }, { $eq: ["$type", "sold"] }] }, then: "sold" },
+            { case: { $and: [{ $eq: ["$from", "sco-query"] }, { $eq: ["$type", "sold"] }] }, then: "sold_pos" }
+          ],
+          default: null
+        }
+      }
+    }
+  },
+  { $match: { recordType: { $ne: null } } },
+  {
+    $group: {
+      _id: {
+        accountId: "$account",
+        month: {
+          $dateToString: {
+            format: "%m-%Y",
+            date: "$invoiceDate",
+            timezone: "Asia/Ho_Chi_Minh"
+          }
+        },
+        invoiceDate: "$invoiceDate",
+        recordType: "$recordType"
+      },
+      value: { $sum: 1 }
+    }
+  },
+  { $sort: { "_id.invoiceDate": 1, "_id.recordType": 1 } }
+]);</pre>
+            <p class="desc">Job pivot các dòng group thành 4 field <code>*Value</code>, sau đó tính <code>monthlyTotal</code> và upsert theo account/tháng/ngày.</p>
+
+            <h3>Execution flow</h3>
+            <ol>
+              <li>Đọc <code>invoiceraws</code> theo account và khoảng ngày bị ảnh hưởng.</li>
+              <li>Chuẩn hóa <code>data.tdlap</code> thành ngày nghiệp vụ.</li>
+              <li>Group theo <code>accountId + month + invoiceDate + from + type</code>.</li>
+              <li>Map sang 4 field count: <code>purchaseValue</code>, <code>soldValue</code>, <code>purchasePosValue</code>, <code>soldPosValue</code>.</li>
+              <li>Tính <code>monthlyTotal</code> từ tổng 4 loại trong cùng account/tháng.</li>
+              <li>Upsert theo <code>accountId + month + invoiceDate + recordType = calendar</code>.</li>
+            </ol>
+
+            <h3>Decision cần giữ trong implementation</h3>
+            <div class="warning-box">
+              Source cũ dùng nhánh fallback cho tổ hợp <code>from/type</code> không khớp và gán vào nhóm bán ra máy tính tiền. Dev cần xác nhận có giữ nguyên fallback này hay reject dữ liệu bất thường để tránh làm sai số Calendar.
+            </div>
+
+            <h3>Retry và reconciliation</h3>
+            <table>
+              <thead><tr><th>Trường hợp</th><th>Xử lý / expected result</th></tr></thead>
+              <tbody>
+                <tr><td>Source query timeout / transient error</td><td>Không upsert tháng chưa hoàn chỉnh; retry ở lần chạy kế tiếp.</td></tr>
+                <tr><td>Daily total</td><td>Tổng 4 loại của ngày khớp aggregate trực tiếp từ <code>invoiceraws</code>.</td></tr>
+                <tr><td>Monthly total</td><td><code>monthlyTotal</code> bằng tổng các ngày trong tháng của cùng account.</td></tr>
+                <tr><td>Account isolation</td><td>Dữ liệu account A không xuất hiện trong Calendar của account B.</td></tr>
+                <tr><td>Rerun</td><td>Chạy lại cùng account/tháng chỉ update document, không tạo duplicate.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="job-sync">
+          <h2>7. Job — Sync History và Sync Stats</h2>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><code>dashboard-sync-history-refresh</code> → read-model lịch sử</span>
+              <span class="ui-badge success">Mỗi 30 phút</span>
+            </div>
+            <p class="desc">Nạp từng phiên đồng bộ từ <code>externalaccountsyncs</code> để phục vụ danh sách lịch sử theo account và ngày chọn.</p>
+
+            <h3>Source và field mapping</h3>
+            <table>
+              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
+              <tbody>
+                <tr><td><code>accountId</code></td><td>Tài khoản thuế được chọn trên Calendar; kiểu dữ liệu cần BE xác nhận.</td><td><code>externalaccountsyncs.account</code></td><td>Map account reference sang target accountId.</td><td>Có source trực tiếp.</td></tr>
+                <tr><td><code>invoiceDate</code></td><td>Ngày hóa đơn, dùng để hiển thị Calendar và lọc lịch sử.</td><td><code>externalaccountsyncs.ge/le</code></td><td>Chưa được tự chọn một ngày từ khoảng ge/le.</td><td>Cần chốt quy tắc lọc theo ngày.</td></tr>
+                <tr><td><code>syncTime</code></td><td>Thời điểm của phiên đồng bộ; khác với <code>invoiceDate</code>.</td><td><code>externalaccountsyncs.created_date</code></td><td>Map trực tiếp sang thời điểm phiên.</td><td>Candidate hợp lý cho thời điểm phiên.</td></tr>
+                <tr><td><code>syncTotal</code></td><td>Tổng đầu phiếu trong phiên đồng bộ.</td><td><code>externalaccountsyncs.total</code></td><td>Map trực tiếp.</td><td>Có source trực tiếp.</td></tr>
+                <tr><td><code>syncNeedSave</code></td><td>Số lượng đầu phiếu cần lưu trong phiên.</td><td><code>externalaccountsyncs.synced</code></td><td>Chưa map vì source name/semantics khác target.</td><td>Cần xác nhận nghiệp vụ.</td></tr>
+                <tr><td><code>syncSaved</code></td><td>Số lượng đầu phiếu đã lưu trong phiên.</td><td><code>externalaccountsyncs.synced</code></td><td>Candidate nhưng chưa được tự map.</td><td>Cần xác nhận semantics.</td></tr>
+                <tr><td><code>syncNewCount</code></td><td>Số lượng đầu phiếu mới trong phiên.</td><td><code>externalaccountsyncs.created</code></td><td>Candidate theo UI cũ.</td><td>Cần xác nhận.</td></tr>
+                <tr><td><code>sourceSyncId</code></td><td>Khóa nguồn dùng để chống duplicate khi rerun.</td><td><code>externalaccountsyncs._id</code></td><td>Copy reference ID, không copy payload.</td><td>Field kỹ thuật cần bổ sung nếu dùng read-model chung.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Query đề xuất</h3>
+            <pre>const accountId = ObjectId("66c000000000000000000020");
+const lastCheckpoint = ISODate("2026-08-20T00:00:00.000Z");
+
+db.getCollection("externalaccountsyncs")
+  .find(
+    {
+      account: accountId,
+      created_date: { $gt: lastCheckpoint }
+    },
+    {
+      _id: 1,
+      account: 1,
+      created_date: 1,
+      ge: 1,
+      le: 1,
+      total: 1,
+      synced: 1,
+      created: 1,
+      status: 1,
+      status_code: 1,
+      description: 1
+    }
+  )
+  .sort({ created_date: -1 })
+  .limit(100);</pre>
+            <p class="desc">Kết quả được upsert theo <code>accountId + sourceSyncId</code>. Bộ lọc theo <code>invoiceDate</code> chưa được thêm vì source hiện chỉ có khoảng <code>ge/le</code>.</p>
+
+            <h3>Execution flow</h3>
+            <!-- Giữ sourceSyncId để rerun không tạo phiên lịch sử trùng khi created_date hoặc thứ tự sort thay đổi. -->
+            <ol>
+              <li>Đọc các sync record mới hoặc thay đổi theo checkpoint <code>created_date</code>.</li>
+              <li>Projection các field hiển thị; loại bỏ password, token và config snapshot.</li>
+              <li>Ghi <code>sourceSyncId = externalaccountsyncs._id</code> vào read-model.</li>
+              <li>Upsert theo <code>accountId + sourceSyncId</code>.</li>
+              <li>Expose pagination theo <code>created_date desc</code>.</li>
+            </ol>
+
+            <h3>Retry và reconciliation</h3>
+            <table>
+              <thead><tr><th>Trường hợp</th><th>Xử lý / expected result</th></tr></thead>
+              <tbody>
+                <tr><td>Source query timeout / transient error</td><td>Giữ checkpoint cũ và retry ở lần chạy kế tiếp.</td></tr>
+                <tr><td>Duplicate source record</td><td>Unique key <code>accountId + sourceSyncId</code> không tạo phiên thứ hai.</td></tr>
+                <tr><td>Source status cập nhật</td><td>Upsert lại cùng <code>sourceSyncId</code>, giữ phiên mới nhất.</td></tr>
+                <tr><td>Pagination reconciliation</td><td>Tổng record target theo account khớp số phiên source trong cùng phạm vi.</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title"><code>dashboard-sync-stats-refresh</code> → <code>dashboardinvoicesyncstats</code></span>
+              <span class="ui-badge warning">Blocked — cần contract</span>
+            </div>
+            <p class="desc">Job này chỉ được bật sau khi xác định được nguồn chính xác cho <code>invoiceDate</code>, <code>synced</code>, <code>pending</code>, <code>ignored</code> và <code>saved</code>.</p>
+
+            <h3>Source và field mapping</h3>
+            <table>
+              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
+              <tbody>
+                <tr><td><code>invoiceDate</code></td><td>Ngày hóa đơn dùng làm trục biểu đồ.</td><td><code>externalaccountsyncs.ge/le/created_date</code></td><td>Chưa xác định field ngày chính xác.</td><td>Không tự suy diễn.</td></tr>
+                <tr><td><code>syncedValue</code></td><td>Số lượng đầu phiếu ở trạng thái <code>synced</code>.</td><td><code>synced</code> hoặc <code>status_code = SUCCESS</code></td><td>Chốt cộng theo session hay theo invoice.</td><td>Blocked nếu status session không đại diện số invoice.</td></tr>
+                <tr><td><code>pendingValue</code></td><td>Số lượng đầu phiếu ở trạng thái <code>pending</code>.</td><td><code>status_code = PENDING</code></td><td>Chốt status session có đại diện số invoice pending không.</td><td>Không dùng trực tiếp trước khi xác nhận.</td></tr>
+                <tr><td><code>ignoredValue</code></td><td>Số lượng đầu phiếu ở trạng thái <code>ignored</code>.</td><td>Chưa thấy field tương ứng.</td><td>Cần source hoặc rule bổ sung.</td><td>Không tạo số liệu mặc định.</td></tr>
+                <tr><td><code>savedValue</code></td><td>Số lượng đầu phiếu ở trạng thái <code>saved</code>.</td><td><code>created</code>/<code>synced</code> có thể liên quan.</td><td>Chỉ map sau khi có contract nghiệp vụ.</td><td>Không map theo tên gần giống.</td></tr>
+                <tr><td><code>total</code></td><td>Tổng của <code>syncedValue</code>, <code>pendingValue</code>, <code>ignoredValue</code> và <code>savedValue</code>.</td><td>4 target status fields</td><td>Tính sau khi 4 status đã được xác định.</td><td>Phải khớp tổng status.</td></tr>
+                <tr><td><code>createdAt</code></td><td>Thời điểm document thống kê được tạo.</td><td>Job runtime</td><td>Set khi insert lần đầu.</td><td>Không phải invoiceDate.</td></tr>
+                <tr><td><code>updatedAt</code></td><td>Thời điểm số liệu được cập nhật gần nhất.</td><td>Job runtime</td><td>Set sau mỗi upsert thành công.</td><td>Dùng để theo dõi freshness.</td></tr>
+              </tbody>
+            </table>
+
+            <h3>Query kiểm tra source — chưa dùng để nạp target</h3>
+            <pre>const fromDate = ISODate("2026-08-01T00:00:00.000Z");
+const toDate = ISODate("2026-08-08T00:00:00.000Z");
+
+db.getCollection("externalaccountsyncs").aggregate([
+  {
+    $match: {
+      created_date: { $gte: fromDate, $lt: toDate }
+    }
+  },
+  {
+    $group: {
+      _id: {
+        date: {
+          $dateToString: {
+            format: "%Y-%m-%d",
+            date: "$created_date",
+            timezone: "Asia/Ho_Chi_Minh"
+          }
+        },
+        statusCode: "$status_code"
+      },
+      sessionCount: { $sum: 1 },
+      total: { $sum: { $ifNull: ["$total", 0] } },
+      synced: { $sum: { $ifNull: ["$synced", 0] } },
+      created: { $sum: { $ifNull: ["$created", 0] } }
+    }
+  },
+  { $sort: { "_id.date": 1, "_id.statusCode": 1 } }
+]);</pre>
+            <p class="desc">Query này chỉ cho thấy các dimension hiện có của source. Không được dùng trực tiếp để ghi <code>dashboardinvoicesyncstats</code> trước khi chốt mapping status và ngày.</p>
+
+            <h3>Execution flow</h3>
+            <!-- Không chạy sync stats khi contract status chưa chốt vì số liệu suy diễn sẽ làm sai dashboard. -->
+            <ol>
+              <li>Job khởi động ở trạng thái disabled.</li>
+              <li>BE/BA ký mapping status và date dimension.</li>
+              <li>Viết test fixture cho từng status và trường hợp thiếu field.</li>
+              <li>Chạy UAT một partition ngày, đối chiếu với màn hình cũ hoặc số liệu được xác nhận.</li>
+              <li>Chỉ sau khi reconciliation đạt mới bật scheduler 30 phút.</li>
+            </ol>
+
+            <h3>Retry và reconciliation</h3>
+            <table>
+              <thead><tr><th>Trường hợp</th><th>Xử lý / expected result</th></tr></thead>
+              <tbody>
+                <tr><td>Contract chưa chốt</td><td>Job giữ disabled, không ghi số liệu suy diễn vào target.</td></tr>
+                <tr><td>Source thiếu field status</td><td>Đánh dấu blocked/failed và alert; không dùng giá trị 0 thay thế.</td></tr>
+                <tr><td>Mapping đã chốt nhưng query lỗi transient</td><td>Giữ checkpoint cũ và retry partition ở lần chạy kế tiếp.</td></tr>
+                <tr><td>Reconciliation</td><td>Tổng 4 status phải bằng <code>total</code> và khớp số liệu được BA/BE xác nhận.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+</body>
+</html>
