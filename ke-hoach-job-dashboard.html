@@ -229,10 +229,9 @@
           <a class="sidebar-link" href="#scope">1. Phạm vi</a>
           <a class="sidebar-link" href="#source-target">2. Source → Target</a>
           <a class="sidebar-link" href="#job-design">3. Thiết kế Job</a>
-          <a class="sidebar-link" href="#job-overview">4. Job Overview</a>
-          <a class="sidebar-link" href="#job-missing-assets">5. Job Missing Assets</a>
-          <a class="sidebar-link" href="#job-calendar">6. Job Calendar</a>
-          <a class="sidebar-link" href="#job-sync">7. Job Sync</a>
+          <a class="sidebar-link" href="#job-missing-assets">4. Job Missing Assets</a>
+          <a class="sidebar-link" href="#job-calendar">5. Job Calendar</a>
+          <a class="sidebar-link" href="#job-sync">6. Job Sync</a>
           <a class="sidebar-link" href="index.html">← Về tài liệu payload</a>
         </nav>
       </aside>
@@ -240,7 +239,7 @@
       <div class="content">
         <header id="document-intro">
           <h1>Kế Hoạch Job Đồng Bộ Dữ Liệu Dashboard</h1>
-          <p class="subtitle">Kế hoạch nạp dữ liệu từ collection hiện hữu vào các collection đích được đề xuất trong index.html</p>
+          <p class="subtitle">Kế hoạch nạp dữ liệu từ collection hiện hữu vào các collection đích được đề xuất trong index.html; riêng widget tổng quan đọc trực tiếp qua dashboard-api</p>
         </header>
 
         <div class="warning-box">
@@ -257,9 +256,12 @@
             </div>
             <ul>
               <li>Đọc dữ liệu từ các collection nghiệp vụ hiện hữu.</li>
-              <li>Aggregate theo ngày, tài khoản, loại asset và trạng thái cần thiết cho dashboard.</li>
-              <li>Ghi idempotent vào các collection đích: <code>dashboardwidgets</code>, <code>dashboardmissingassets</code>, <code>dashboardinvoicesyncstats</code> và <code>dashboardinvoicecalendar</code>.</li>
-              <li>Cung cấp cơ chế backfill, incremental refresh, retry, reconciliation và audit log.</li>
+              <li>Aggregate theo ngày, tài khoản, loại asset và trạng thái cần thiết cho các read-model của dashboard.</li>
+              <li>Ghi idempotent vào các collection đích: <code>dashboardmissingassets</code>, <code>dashboardinvoicesyncstats</code> và <code>dashboardinvoicecalendar</code>.</li>
+              <li>Không tạo snapshot cho 4 widget tổng quan; các widget này được <code>dashboard-api</code> đọc trực tiếp từ collection nguồn.</li>
+              <!-- Widget overview không có target collection nên không phát sinh luồng đồng bộ, checkpoint hoặc backfill. -->
+              <li>Không đồng bộ dữ liệu của widget tổng quan sang DB đích; không tạo checkpoint, backfill hoặc reconciliation riêng cho nhóm này.</li>
+              <li>Cung cấp cơ chế backfill, incremental refresh, retry, reconciliation và audit log cho các job read-model.</li>
             </ul>
 
             <h3>Phạm vi không bao gồm</h3>
@@ -271,7 +273,7 @@
           </div>
 
           <div class="info-box">
-            <strong>Snapshot đã kiểm tra read-only:</strong> database là <code>HDDVLCDev</code>. Các collection đích được đề xuất trong index.html hiện chưa tồn tại; kế hoạch dưới đây bao gồm bước tạo schema/index trước khi chạy job.
+            <strong>Snapshot đã kiểm tra read-only:</strong> database là <code>HDDVLCDev</code>. Các collection read-model được đề xuất trong index.html hiện chưa tồn tại; kế hoạch dưới đây bao gồm bước tạo schema/index trước khi chạy job. Widget tổng quan chỉ đọc trực tiếp và không nằm trong nhóm dữ liệu đồng bộ sang DB đích.
           </div>
         </section>
 
@@ -288,10 +290,10 @@
               </thead>
               <tbody>
                 <tr>
-                  <td><code>dashboardwidgets</code></td>
-                  <td><code>botconnection</code>, <code>externalaccounts</code>, <code>useraccounts</code>, <code>invoiceraws</code></td>
-                  <td><code>connected = true</code>; account GOV có token; số account GOV; số user account; <code>data.ttxly = 4</code> là candidate cho hóa đơn không đủ điều kiện.</td>
-                  <td><span class="text-danger">Chưa rõ điều kiện chính xác</span></td>
+                  <td>Widget overview<br><span class="ui-badge">Direct API</span></td>
+                  <td><code>botconnection</code>, <code>externalaccounts</code>, <code>useraccounts</code>, <code>dailyerrors</code></td>
+                  <td><code>dashboard-api</code> đọc count/tổng read-only theo contract C4; không aggregate vào target collection.</td>
+                  <td><span class="ui-badge success">Không chạy job</span>; dùng trực tiếp các endpoint hiện hữu.</td>
                 </tr>
                 <tr>
                   <td><code>dashboardmissingassets</code></td>
@@ -349,10 +351,10 @@ Upsert target collection + ghi job_run audit
 Mark checkpoint thành công hoặc retry</pre>
 
             <h3>Job list</h3>
+            <p class="desc">Widget overview đọc trực tiếp qua <code>dashboard-api</code> nên không có job refresh hoặc checkpoint riêng. Các job dưới đây chỉ phục vụ những read-model cần lưu vào MongoDB.</p>
             <table>
               <thead><tr><th>Job</th><th>Trigger dự kiến</th><th>Input</th><th>Upsert key</th></tr></thead>
               <tbody>
-                <tr><td><code>dashboard-overview-refresh</code></td><td>Mỗi 30 phút</td><td>4 source collections</td><td>Singleton key cần BE chốt: fixed <code>_id</code> hoặc <code>metricKey = overview</code>.</td></tr>
                 <tr><td><code>dashboard-missing-assets-refresh</code></td><td>Mỗi 30 phút</td><td><code>invoiceraws</code>, <code>externalaccounts</code></td><td><code>invoiceDate + assetType + hasToken</code>.</td></tr>
                 <tr><td><code>dashboard-calendar-refresh</code></td><td>Mỗi 30 phút</td><td><code>invoiceraws</code></td><td><code>accountId + month + invoiceDate + recordType</code>.</td></tr>
                 <tr><td><code>dashboard-sync-history-refresh</code></td><td>Mỗi 30 phút</td><td><code>externalaccountsyncs</code></td><td><code>accountId + syncId</code>.</td></tr>
@@ -389,73 +391,8 @@ Mark checkpoint thành công hoặc retry</pre>
           </div>
         </section>
 
-        <section id="job-overview">
-          <h2>4. Job — Overview Widget</h2>
-          <div class="card">
-            <div class="card-header">
-              <span class="card-title"><code>dashboard-overview-refresh</code> → <code>dashboardwidgets</code></span>
-              <span class="ui-badge success">Mỗi 30 phút</span>
-            </div>
-            <p class="desc">Tạo một snapshot tổng hợp cho widget overview. Job không nhận date range; mỗi lần chạy tính lại toàn bộ các metric hiện tại trong phạm vi account đã chốt.</p>
-
-            <h3>Source và field mapping</h3>
-            <table>
-              <thead><tr><th>Target field</th><th>Mô tả</th><th>Source</th><th>Query / rule</th><th>Ghi chú</th></tr></thead>
-              <tbody>
-                <tr><td><code>runningBots</code></td><td>Tổng số BOT đang chạy tại thời điểm cập nhật.</td><td><code>botconnection.connected</code></td><td><code>countDocuments({ connected: true })</code></td><td>Không dùng tổng document nếu mục tiêu là BOT đang chạy.</td></tr>
-                <tr><td><code>totalHasToken</code></td><td>Tổng số tài khoản thuế đã có token.</td><td><code>externalaccounts</code></td><td>Toàn bộ: <code>countDocuments({ type: 'hoadondientu-gov', token: { $exists: true, $nin: [null, ''] } })</code>. Nếu chỉ tính tài khoản đang hiển thị: thêm <code>visible: true</code>.</td><td>Chỉ đọc trạng thái token; không ghi token sang target.</td></tr>
-                <tr><td><code>totalDeclared</code></td><td>Tổng số tài khoản thuế đã khai báo kết nối.</td><td><code>externalaccounts</code></td><td>Toàn bộ: <code>countDocuments({ type: 'hoadondientu-gov' })</code>. Nếu chỉ tính tài khoản đang hiển thị: thêm <code>visible: true</code>.</td><td>Cần chốt một trong hai phạm vi để widget và dropdown dùng cùng cách tính.</td></tr>
-                <tr><td><code>totalRegistered</code></td><td>Tổng số tài khoản người dùng đăng ký sử dụng.</td><td><code>useraccounts</code></td><td><code>countDocuments()</code></td><td>Đếm user account theo database hiện tại.</td></tr>
-                <tr><td><code>unqualifiedCount</code></td><td>Số lượng hóa đơn bị đánh dấu không thỏa mãn điều kiện.</td><td><code>invoiceraws.data.ttxly</code></td><td>Candidate: <code>data.ttxly = 4</code>.</td><td><span class="text-danger">Chưa rõ điều kiện chính xác</span></td></tr>
-              </tbody>
-            </table>
-
-            <h3>Query đề xuất</h3>
-            <pre>const govFilter = { type: "hoadondientu-gov" };
-const govTokenFilter = {
-  ...govFilter,
-  token: { $exists: true, $nin: [null, ""] }
-};
-
-const overview = {
-  runningBots: db.getCollection("botconnection")
-    .countDocuments({ connected: true }),
-  totalHasToken: db.getCollection("externalaccounts")
-    .countDocuments(govTokenFilter),
-  totalDeclared: db.getCollection("externalaccounts")
-    .countDocuments(govFilter),
-  totalRegistered: db.getCollection("useraccounts")
-    .countDocuments(),
-  unqualifiedCount: db.getCollection("invoiceraws")
-    .countDocuments({ "data.ttxly": 4 })
-};</pre>
-            <p class="desc">Nếu chốt chỉ tính account đang hiển thị, thêm <code>visible: true</code> vào <code>govFilter</code> và <code>govTokenFilter</code>.</p>
-
-            <h3>Execution flow</h3>
-            <!-- Snapshot phải được tính hoàn chỉnh trước khi upsert để một source query lỗi không tạo document tổng hợp một phần. -->
-            <ol>
-              <li>Đọc 4 source collection bằng projection allow-list.</li>
-              <li>Tính toàn bộ metric trong memory hoặc temporary result.</li>
-              <li>Validate metric là số nguyên không âm và không có field nhạy cảm.</li>
-              <li>Upsert một document duy nhất theo fixed <code>_id</code> hoặc <code>metricKey = overview</code>.</li>
-              <li>Ghi <code>sourceSnapshotAt</code>, <code>jobRunId</code> và thời gian cập nhật.</li>
-            </ol>
-
-            <h3>Retry và reconciliation</h3>
-            <table>
-              <thead><tr><th>Trường hợp</th><th>Xử lý</th></tr></thead>
-              <tbody>
-                <tr><td>Source query timeout / transient error</td><td>Không upsert snapshot mới; retry theo scheduler.</td></tr>
-                <tr><td>Schema field không tồn tại</td><td>Đánh dấu job failed và alert; không tự dùng giá trị mặc định.</td></tr>
-                <tr><td>Rerun cùng thời điểm</td><td>Upsert cùng singleton key, không tạo document thứ hai.</td></tr>
-                <tr><td>Kiểm tra sau job</td><td>So sánh từng metric target với kết quả query source của cùng run.</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         <section id="job-missing-assets">
-          <h2>5. Job — Missing XML / Detail</h2>
+          <h2>4. Job — Missing XML / Detail</h2>
           <div class="card">
             <div class="card-header">
               <span class="card-title"><code>dashboard-missing-assets-refresh</code> → <code>dashboardmissingassets</code></span>
@@ -584,7 +521,7 @@ db.getCollection("invoiceraws").aggregate([
         </section>
 
         <section id="job-calendar">
-          <h2>6. Job — Invoice Calendar</h2>
+          <h2>5. Job — Invoice Calendar</h2>
           <div class="card">
             <div class="card-header">
               <span class="card-title"><code>dashboard-calendar-refresh</code> → <code>dashboardinvoicecalendar</code></span>
@@ -709,7 +646,7 @@ db.getCollection("invoiceraws").aggregate([
         </section>
 
         <section id="job-sync">
-          <h2>7. Job — Sync History và Sync Stats</h2>
+          <h2>6. Job — Sync History và Sync Stats</h2>
           <div class="card">
             <div class="card-header">
               <span class="card-title"><code>dashboard-sync-history-refresh</code> → read-model lịch sử</span>
